@@ -1,0 +1,531 @@
+--// Bxn Hub v2 - by Domingo_8460
+--// Poner este script como LocalScript en StarterPlayerScripts
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local localPlayer = Players.LocalPlayer
+local mouse = localPlayer:GetMouse()
+local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+----------------------------------------------------
+-- FUNCIONES ÚTILES
+----------------------------------------------------
+
+local function getCharacter()
+    local char = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    return char, hum
+end
+
+----------------------------------------------------
+-- CREAR GUI PRINCIPAL
+----------------------------------------------------
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "BxnHubV2"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
+
+-- Botón para abrir/cerrar
+local openButton = Instance.new("TextButton")
+openButton.Name = "OpenButton"
+openButton.Size = UDim2.new(0, 120, 0, 40)
+openButton.Position = UDim2.new(0, 20, 0, 200)
+openButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+openButton.BorderSizePixel = 0
+openButton.Text = "Bxn Hub v2"
+openButton.TextColor3 = Color3.new(1, 1, 1)
+openButton.Font = Enum.Font.GothamBold
+openButton.TextSize = 16
+openButton.Parent = screenGui
+
+-- Fondo principal
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 320, 0, 260)
+mainFrame.Position = UDim2.new(0.5, -160, 0.5, -130)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+mainFrame.BorderSizePixel = 0
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+
+-- Borde redondeado
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = mainFrame
+
+-- Sombra
+local shadow = Instance.new("ImageLabel")
+shadow.Name = "Shadow"
+shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+shadow.Position = UDim2.new(0.5, 0, 0.5, 8)
+shadow.Size = UDim2.new(1, 24, 1, 24)
+shadow.BackgroundTransparency = 1
+shadow.Image = "rbxassetid://5028857084"
+shadow.ImageColor3 = Color3.new(0, 0, 0)
+shadow.ImageTransparency = 0.4
+shadow.ScaleType = Enum.ScaleType.Slice
+shadow.SliceCenter = Rect.new(24, 24, 276, 276)
+shadow.ZIndex = 0
+shadow.Parent = mainFrame
+mainFrame.ZIndex = 1
+
+-- Título
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Size = UDim2.new(1, -20, 0, 30)
+titleLabel.Position = UDim2.new(0, 10, 0, 10)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Bxn Hub v2"
+titleLabel.TextColor3 = Color3.new(1, 1, 1)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 20
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = mainFrame
+
+-- Subtítulo
+local subtitleLabel = Instance.new("TextLabel")
+subtitleLabel.Name = "Subtitle"
+subtitleLabel.Size = UDim2.new(1, -20, 0, 16)
+subtitleLabel.Position = UDim2.new(0, 10, 0, 34)
+subtitleLabel.BackgroundTransparency = 1
+subtitleLabel.Text = "made by Domingo_8460"
+subtitleLabel.TextColor3 = Color3.new(0, 0, 0) -- negro
+subtitleLabel.Font = Enum.Font.Gotham
+subtitleLabel.TextSize = 12
+subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+subtitleLabel.Parent = mainFrame
+
+-- Línea de separación
+local separator = Instance.new("Frame")
+separator.Name = "Separator"
+separator.Size = UDim2.new(1, -20, 0, 1)
+separator.Position = UDim2.new(0, 10, 0, 56)
+separator.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+separator.BorderSizePixel = 0
+separator.Parent = mainFrame
+
+----------------------------------------------------
+-- LAYOUT INTERNO
+----------------------------------------------------
+
+local contentFrame = Instance.new("Frame")
+contentFrame.Name = "Content"
+contentFrame.Size = UDim2.new(1, -20, 1, -70)
+contentFrame.Position = UDim2.new(0, 10, 0, 60)
+contentFrame.BackgroundTransparency = 1
+contentFrame.Parent = mainFrame
+
+local uiList = Instance.new("UIListLayout")
+uiList.Padding = UDim.new(0, 6)
+uiList.FillDirection = Enum.FillDirection.Vertical
+uiList.HorizontalAlignment = Enum.HorizontalAlignment.Left
+uiList.SortOrder = Enum.SortOrder.LayoutOrder
+uiList.Parent = contentFrame
+
+local function createSectionLabel(text)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, 0, 0, 18)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = Color3.fromRGB(180, 180, 180)
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 14
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    return lbl
+end
+
+local function createSmallButton(text)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 80, 0, 26)
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    btn.BorderSizePixel = 0
+    btn.Text = text
+    btn.TextColor3 = Color3.new(1, 1, 1)
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = 14
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 6)
+    c.Parent = btn
+    return btn
+end
+
+local function createRowFrame(height)
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(1, 0, 0, height)
+    f.BackgroundTransparency = 1
+    local layout = Instance.new("UIListLayout")
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    layout.Padding = UDim.new(0, 6)
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Parent = f
+    return f
+end
+
+----------------------------------------------------
+-- BOTÓN ABRIR/CERRAR INTERFAZ
+----------------------------------------------------
+
+local isOpen = false
+openButton.MouseButton1Click:Connect(function()
+    isOpen = not isOpen
+    mainFrame.Visible = isOpen
+end)
+
+----------------------------------------------------
+-- 1) VELOCIDAD CON +/- (WalkSpeed)
+----------------------------------------------------
+
+local defaultSpeed = 16
+local currentSpeed = 16
+local minSpeed = 8
+local maxSpeed = 80
+local speedStep = 4
+
+local speedLabel = createSectionLabel("Velocidad")
+speedLabel.Parent = contentFrame
+
+local speedRow = createRowFrame(30)
+speedRow.Parent = contentFrame
+
+local speedDownButton = createSmallButton("-")
+speedDownButton.Parent = speedRow
+
+local speedUpButton = createSmallButton("+")
+speedUpButton.Parent = speedRow
+
+local speedValueLabel = Instance.new("TextLabel")
+speedValueLabel.Size = UDim2.new(0, 100, 1, 0)
+speedValueLabel.BackgroundTransparency = 1
+speedValueLabel.Text = "Actual: " .. tostring(currentSpeed)
+speedValueLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+speedValueLabel.Font = Enum.Font.Gotham
+speedValueLabel.TextSize = 14
+speedValueLabel.TextXAlignment = Enum.TextXAlignment.Left
+speedValueLabel.Parent = speedRow
+
+local function updateSpeed()
+    local char, hum = getCharacter()
+    if hum then
+        hum.WalkSpeed = currentSpeed
+        speedValueLabel.Text = "Actual: " .. tostring(currentSpeed)
+    end
+end
+
+speedDownButton.MouseButton1Click:Connect(function()
+    currentSpeed = math.clamp(currentSpeed - speedStep, minSpeed, maxSpeed)
+    updateSpeed()
+end)
+
+speedUpButton.MouseButton1Click:Connect(function()
+    currentSpeed = math.clamp(currentSpeed + speedStep, minSpeed, maxSpeed)
+    updateSpeed()
+end)
+
+-- Asegurar velocidad al respawnear
+localPlayer.CharacterAdded:Connect(function(char)
+    humanoid = char:WaitForChild("Humanoid")
+    updateSpeed()
+end)
+
+----------------------------------------------------
+-- 2) FLY CON +/- (velocidad de vuelo)
+----------------------------------------------------
+
+local flyLabel = createSectionLabel("Fly")
+flyLabel.Parent = contentFrame
+
+local flyRow = createRowFrame(30)
+flyRow.Parent = contentFrame
+
+local flyToggleButton = createSmallButton("Activar")
+flyToggleButton.Size = UDim2.new(0, 90, 0, 26)
+flyToggleButton.Parent = flyRow
+
+local flySpeedDownButton = createSmallButton("-")
+flySpeedDownButton.Parent = flyRow
+
+local flySpeedUpButton = createSmallButton("+")
+flySpeedUpButton.Parent = flyRow
+
+local flySpeedLabel = Instance.new("TextLabel")
+flySpeedLabel.Size = UDim2.new(0, 100, 1, 0)
+flySpeedLabel.BackgroundTransparency = 1
+flySpeedLabel.Text = "Vel: 32"
+flySpeedLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+flySpeedLabel.Font = Enum.Font.Gotham
+flySpeedLabel.TextSize = 14
+flySpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
+flySpeedLabel.Parent = flyRow
+
+local flyEnabled = false
+local flySpeed = 32
+local flyMinSpeed = 8
+local flyMaxSpeed = 120
+local bodyVelocity
+local bodyGyro
+
+local function updateFlySpeedLabel()
+    flySpeedLabel.Text = "Vel: " .. tostring(flySpeed)
+end
+
+local function startFly()
+    local char, hum = getCharacter()
+    local rootPart = char:WaitForChild("HumanoidRootPart")
+
+    bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+    bodyVelocity.Parent = rootPart
+
+    bodyGyro = Instance.new("BodyGyro")
+    bodyGyro.MaxTorque = Vector3.new(1e5, 1e5, 1e5)
+    bodyGyro.P = 1e4
+    bodyGyro.CFrame = rootPart.CFrame
+    bodyGyro.Parent = rootPart
+
+    hum.PlatformStand = true
+end
+
+local function stopFly()
+    local char, hum = getCharacter()
+    if bodyVelocity then bodyVelocity:Destroy() bodyVelocity = nil end
+    if bodyGyro then bodyGyro:Destroy() bodyGyro = nil end
+    if hum then hum.PlatformStand = false end
+end
+
+flyToggleButton.MouseButton1Click:Connect(function()
+    flyEnabled = not flyEnabled
+    flyToggleButton.Text = flyEnabled and "Desactivar" or "Activar"
+    if flyEnabled then
+        startFly()
+    else
+        stopFly()
+    end
+end)
+
+flySpeedDownButton.MouseButton1Click:Connect(function()
+    flySpeed = math.clamp(flySpeed - 4, flyMinSpeed, flyMaxSpeed)
+    updateFlySpeedLabel()
+end)
+
+flySpeedUpButton.MouseButton1Click:Connect(function()
+    flySpeed = math.clamp(flySpeed + 4, flyMinSpeed, flyMaxSpeed)
+    updateFlySpeedLabel()
+end)
+
+-- Actualizar dirección del vuelo
+RunService.RenderStepped:Connect(function()
+    if flyEnabled and bodyVelocity and bodyGyro then
+        local char = localPlayer.Character
+        if not char then return end
+        local rootPart = char:FindFirstChild("HumanoidRootPart")
+        if not rootPart then return end
+
+        local camera = workspace.CurrentCamera
+        local moveDir = Vector3.new(0, 0, 0)
+
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            moveDir = moveDir + camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            moveDir = moveDir - camera.CFrame.LookVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            moveDir = moveDir - camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            moveDir = moveDir + camera.CFrame.RightVector
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            moveDir = moveDir + Vector3.new(0, 1, 0)
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+            moveDir = moveDir - Vector3.new(0, 1, 0)
+        end
+
+        if moveDir.Magnitude > 0 then
+            moveDir = moveDir.Unit
+        end
+
+        bodyVelocity.Velocity = moveDir * flySpeed
+        bodyGyro.CFrame = camera.CFrame
+    end
+end)
+
+----------------------------------------------------
+-- 3) NOCLIP (atravesar paredes)
+----------------------------------------------------
+
+local noclipLabel = createSectionLabel("Noclip")
+noclipLabel.Parent = contentFrame
+
+local noclipRow = createRowFrame(30)
+noclipRow.Parent = contentFrame
+
+local noclipButton = createSmallButton("Activar")
+noclipButton.Size = UDim2.new(0, 90, 0, 26)
+noclipButton.Parent = noclipRow
+
+local noclipEnabled = false
+
+noclipButton.MouseButton1Click:Connect(function()
+    noclipEnabled = not noclipEnabled
+    noclipButton.Text = noclipEnabled and "Desactivar" or "Activar"
+end)
+
+RunService.Stepped:Connect(function()
+    if noclipEnabled then
+        local char = localPlayer.Character
+        if char then
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+end)
+
+----------------------------------------------------
+-- 4) PEGAR DESDE LEJOS (reach)
+----------------------------------------------------
+
+local reachLabel = createSectionLabel("Pegar desde lejos")
+reachLabel.Parent = contentFrame
+
+local reachRow = createRowFrame(30)
+reachRow.Parent = contentFrame
+
+local reachButton = createSmallButton("Activar")
+reachButton.Size = UDim2.new(0, 90, 0, 26)
+reachButton.Parent = reachRow
+
+local reachEnabled = false
+local reachDistance = 25 -- no tan lejos
+
+reachButton.MouseButton1Click:Connect(function()
+    reachEnabled = not reachEnabled
+    reachButton.Text = reachEnabled and "Desactivar" or "Activar"
+end)
+
+-- Cada click izquierdo, intenta pegar a alguien cerca del cursor
+mouse.Button1Down:Connect(function()
+    if not reachEnabled then return end
+
+    local char, hum = getCharacter()
+    if not char or not hum then return end
+    local rootPart = char:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+
+    local target = mouse.Target
+    if not target then return end
+
+    local targetModel = target:FindFirstAncestorOfClass("Model")
+    if not targetModel then return end
+
+    local targetHumanoid = targetModel:FindFirstChildOfClass("Humanoid")
+    local targetRoot = targetModel:FindFirstChild("HumanoidRootPart")
+    if not targetHumanoid or not targetRoot then return end
+
+    local distance = (rootPart.Position - targetRoot.Position).Magnitude
+    if distance <= reachDistance then
+        -- Haz daño leve, ajusta si quieres
+        -- Solo funciona si el juego permite Damage desde client
+        targetHumanoid:TakeDamage(10)
+    end
+end)
+
+----------------------------------------------------
+-- 5) ESP (ver jugadores, nombres y distancia)
+----------------------------------------------------
+
+local espLabel = createSectionLabel("ESP jugadores")
+espLabel.Parent = contentFrame
+
+local espRow = createRowFrame(30)
+espRow.Parent = contentFrame
+
+local espButton = createSmallButton("Activar")
+espButton.Size = UDim2.new(0, 90, 0, 26)
+espButton.Parent = espRow
+
+local espEnabled = false
+local espObjects = {} -- [player] = BillboardGui
+
+espButton.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    espButton.Text = espEnabled and "Desactivar" or "Activar"
+
+    -- Mostrar/ocultar existentes
+    for plr, gui in pairs(espObjects) do
+        if gui and gui.Parent then
+            gui.Enabled = espEnabled
+        end
+    end
+end)
+
+local function createESPForPlayer(plr)
+    if plr == localPlayer then return end
+
+    local function onCharacterAdded(char)
+        local head = char:WaitForChild("Head", 10)
+        if not head then return end
+
+        local billboard = Instance.new("BillboardGui")
+        billboard.Name = "ESP_" .. plr.Name
+        billboard.Size = UDim2.new(0, 200, 0, 40)
+        billboard.AlwaysOnTop = true
+        billboard.StudsOffset = Vector3.new(0, 3, 0)
+        billboard.Enabled = espEnabled
+        billboard.Parent = head
+
+        local text = Instance.new("TextLabel")
+        text.Size = UDim2.new(1, 0, 1, 0)
+        text.BackgroundTransparency = 1
+        text.TextColor3 = Color3.new(1, 1, 1) -- blanco
+        text.Font = Enum.Font.GothamBold
+        text.TextSize = 14
+        text.TextStrokeTransparency = 0.3
+        text.Text = plr.Name
+        text.Parent = billboard
+
+        espObjects[plr] = billboard
+
+        RunService.Heartbeat:Connect(function()
+            if not billboard.Parent then return end
+            local myChar = localPlayer.Character
+            local myRoot = myChar and myChar:FindChild("HumanoidRootPart") or myChar and myChar:FindFirstChild("HumanoidRootPart")
+            local targetRoot = char:FindFirstChild("HumanoidRootPart")
+            if myRoot and targetRoot then
+                local dist = (myRoot.Position - targetRoot.Position).Magnitude
+                text.Text = string.format("%s | %.0f", plr.Name, dist)
+            end
+        end)
+    end
+
+    if plr.Character then
+        onCharacterAdded(plr.Character)
+    end
+    plr.CharacterAdded:Connect(onCharacterAdded)
+end
+
+-- Crear ESP para todos los jugadores actuales y futuros
+for _, plr in ipairs(Players:GetPlayers()) do
+    createESPForPlayer(plr)
+end
+
+Players.PlayerAdded:Connect(function(plr)
+    createESPForPlayer(plr)
+end)
+
+Players.PlayerRemoving:Connect(function(plr)
+    if espObjects[plr] then
+        espObjects[plr]:Destroy()
+        espObjects[plr] = nil
+    end
+end)
